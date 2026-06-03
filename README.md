@@ -1,78 +1,84 @@
 # Rifa GOL GLI 1995 — Trend Studio Projects Cars
 
-Landing page mobile-first, dark mode automotivo premium, focada em conversão via WhatsApp.
+Landing page mobile-first, dark mode automotivo premium, focada em conversão via grupo do WhatsApp.
 
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
-- shadcn/ui (Button, Card, Accordion)
 - lucide-react
-- Inter (next/font/google)
+- Meta Pixel + Conversions API
 
 ## Como rodar localmente
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Abre em `http://localhost:3000`.
 
+## Variáveis de ambiente
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `META_ACCESS_TOKEN` | Para Conversions API | Token do Meta (somente servidor; nunca no frontend) |
+| `META_TEST_EVENT_CODE` | Não | Código de teste no Gerenciador de Eventos |
+| `META_API_VERSION` | Não | Default: `v21.0` |
+
+O pixel no navegador (`PageView` e `Lead` no clique do WhatsApp) funciona sem o token. A rota `/api/meta/conversion` retorna 503 se `META_ACCESS_TOKEN` não estiver definida.
+
+Copie `.env.example` para `.env.local` e preencha o token. Na Vercel: Project → Settings → Environment Variables.
+
 ## Deploy na Vercel
 
 ```bash
-npm install
 npm run build
 vercel --prod
 ```
 
-Não precisa de variáveis de ambiente. Sem backend.
+Conecte o repositório GitHub e configure `META_ACCESS_TOKEN` em Production.
+
+## Meta Pixel
+
+- Pixel ID: `955831080784054`
+- `PageView` em todas as páginas ([`components/meta-pixel.tsx`](components/meta-pixel.tsx))
+- `Lead` no clique do CTA ([`components/whatsapp-cta.tsx`](components/whatsapp-cta.tsx))
+- Conversions API: [`app/api/meta/conversion/route.ts`](app/api/meta/conversion/route.ts)
+
+Validação: extensão [Meta Pixel Helper](https://chrome.google.com/webstore/detail/meta-pixel-helper) e Gerenciador de Eventos do Meta.
 
 ## Estrutura
 
 ```
 app/
-  layout.tsx        # metadata + fonts
-  page.tsx          # composição da landing
-  globals.css       # tailwind + base styles
+  layout.tsx              # metadata, fonts, Meta Pixel
+  page.tsx                # landing
+  api/meta/conversion/    # Conversions API
 components/
-  ui/               # shadcn primitives (button, card, accordion)
-  Header.tsx
-  Hero.tsx
-  CarSection.tsx
-  HowItWorks.tsx
-  PricingCallout.tsx
-  RulesAccordion.tsx
-  FinalCTA.tsx
-  Footer.tsx
-  WhatsAppButton.tsx
+  meta-pixel.tsx
+  whatsapp-cta.tsx
 lib/
-  utils.ts          # cn() + WhatsApp helpers
-public/
-  logo.png          # logo Trend Studio (substituir pelo arquivo real)
+  meta.ts
+  meta-conversions.ts
+  utils.ts
 ```
 
-## TODOs antes de subir pra produção
+## TODOs antes de produção
 
-1. **Trocar `public/logo.png`** pelo arquivo real (atualmente é placeholder).
-2. **Adicionar fotos do GOL GLI** em `components/CarSection.tsx` (4 placeholders marcados com `/* TODO: substituir por fotos reais */`).
-3. **Adicionar foto do carro no Hero** em `components/Hero.tsx` (placeholder gradient marcado com `/* TODO: trocar pela foto real do GOL GLI */`).
-4. **Adicionar `public/og-image.png`** (1200×630) para preview no WhatsApp / redes sociais.
+1. **`public/og-image.png`** (1200×630) para preview em redes sociais
+2. Regenerar `META_ACCESS_TOKEN` se o token foi exposto em chat
+3. Confirmar eventos no Meta Events Manager após deploy
 
 ## Identidade visual (tokens)
 
 | Token | Valor |
-|---|---|
+|-------|-------|
 | `bg-base` | `#0A0A0A` |
-| `bg-card` | `#141414` |
 | `accent` | `#E10600` |
 | `accent-hover` | `#FF1A0D` |
-| `text-primary` | `#FFFFFF` |
-| `text-secondary` | `#A1A1AA` |
-| `border` | `#27272A` |
 
-## Click-to-Chat
+## WhatsApp
 
-Todos os CTAs vão para `https://wa.me/5511940638951` com mensagem pré-preenchida.
-Helper em `lib/utils.ts` (`buildWhatsAppUrl`).
+CTA principal: grupo em [`lib/utils.ts`](lib/utils.ts) (`WHATSAPP_GROUP_URL`).
